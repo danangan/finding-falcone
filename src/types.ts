@@ -1,3 +1,5 @@
+import { DoneInvokeEvent } from 'xstate';
+
 export interface IPlanet {
   name: string;
   distance: number;
@@ -21,7 +23,6 @@ export enum STATUS {
 }
 
 export interface IFindingFalconeContext {
-  token: string;
   planets: Array<IPlanet>;
   vehicles: Array<IVehicles>;
   result: null | {
@@ -31,7 +32,8 @@ export interface IFindingFalconeContext {
   selectedValues: [ISelectedValues, ISelectedValues, ISelectedValues, ISelectedValues]
 }
 
-export type FindingFalconeEvent =
+export type FindingFalconeEvents =
   | { type: 'SUBMIT' }
   | { type: 'UPDATE_SELECTED_VEHICLE'; index: 0 | 1 | 2 | 3; value: string; }
   | { type: 'UPDATE_SELECTED_PLANET'; index: 0 | 1 | 2 | 3; value: string; }
+  | DoneInvokeEvent<{planets: Array<IPlanet>, vehicles: Array<IVehicles>}>;

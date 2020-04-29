@@ -1,13 +1,12 @@
 import { createMachine, assign } from 'xstate';
-import {fetchPlanets, fetchToken, fetchVehicles, findfalcone} from "./api";
+import {fetchPlanetsAndVehicles, fetchToken, findfalcone} from "./api";
 import { isFormValid } from "./selector";
-import {IFindingFalconeContext, FindingFalconeEvent} from "./types";
+import {IFindingFalconeContext, FindingFalconeEvents, IVehicles, IPlanet} from "./types";
 
 
-const findingFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeEvent>({
-  id: 'findingFalcone',
+const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeEvents>({
+  id: 'findFalcone',
   context: {
-    token: '',
     planets: [],
     vehicles: [],
     result: null,
@@ -39,21 +38,20 @@ const findingFalconeMachine = createMachine<IFindingFalconeContext, FindingFalco
         },
       },
       loading: {
-          initial: 'fetchingToken',
+          initial: 'fetchingPlanetsAndVehicles',
           states: {
-            fetchingToken: {
+            // Fetching token only needed to find falcone
+            fetchingPlanetsAndVehicles: {
               invoke: {
-                src: fetchToken(),
+                src: fetchPlanetsAndVehicles,
                 onDone: {
-                  target: 'fetchingPlanetsAndVehicles'
+                  target: '#findFalcone.idle',
+                  actions: ['updateVehiclesAndPlanets']
                 },
                 onError: {
-                  target: '#findingFalcone.error'
+                  target: '#findFalcone.error'
                 }
               }
-            },
-            fetchingPlanetsAndVehicles: {
-
             },
             findingFalcone: {
 
@@ -69,10 +67,10 @@ const findingFalconeMachine = createMachine<IFindingFalconeContext, FindingFalco
    },
 }, {
   actions: {
-    updateToken: assign<IFindingFalconeContext, FindingFalconeEvent>(((context, event) => ({
-      token: event.data
-    }))),
-    updateSelectedVehicle: assign<IFindingFalconeContext, FindingFalconeEvent>((context, event) => {
+    updateVehiclesAndPlanets: assign<IFindingFalconeContext, FindingFalconeEvents>((ctx, event) => {
+      return event.data
+    }),
+    updateSelectedVehicle: assign<IFindingFalconeContext, FindingFalconeEvents>((context, event) => {
       if (event.type !== 'UPDATE_SELECTED_VEHICLE') {
         return {}
       }
@@ -84,7 +82,7 @@ const findingFalconeMachine = createMachine<IFindingFalconeContext, FindingFalco
         selectedValues
       }
     }),
-    updateSelectedPlanet: assign<IFindingFalconeContext, FindingFalconeEvent>((context, event) => {
+    updateSelectedPlanet: assign<IFindingFalconeContext, FindingFalconeEvents>((context, event) => {
       if (event.type !== 'UPDATE_SELECTED_VEHICLE') {
         return {}
       }
@@ -98,3 +96,6 @@ const findingFalconeMachine = createMachine<IFindingFalconeContext, FindingFalco
     })
   }
 });
+
+export default findFalconeMachine;
+
