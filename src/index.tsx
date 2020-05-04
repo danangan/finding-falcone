@@ -3,6 +3,16 @@ import ReactDOM from 'react-dom'
 import styles from './styles.module.scss'
 import falconeMachine from './falconeMachine'
 import { useMachine } from '@xstate/react'
+import {ISelectedValues} from './types'
+
+function getUsedVehicleByName(vehicleName: string, selectedValues: Array<ISelectedValues>) {
+  return selectedValues.reduce((prevValue, selectedValue) => {
+    if (selectedValue.vehicle === vehicleName) {
+      return prevValue + 1;
+    }
+    return prevValue;
+  },0)
+}
 
 function Layout(props) {
   return (
@@ -20,47 +30,53 @@ function App() {
 
   let content
 
-
-
-  console.log(state);
-
   const { context: {
     planets,
     vehicles,
-    selectedValues
+    selectedValues,
+    result
   }} = state;
 
   switch (true) {
     case state.matches('idle'):
-      // @ts-ignore
-      // @ts-ignore
       content = (
         <div>
           {
             [0,1,2,3].map((_, idx) =>
-              <div style={{ display: "block" }} key={idx}>
-                Destination {idx + 1}
-                <select value={selectedValues[idx].planet} onChange={(e) => send('UPDATE_SELECTED_PLANET', {
-                  value: e.target.value,
-                  index: idx
-                })}>
-                  <option value="" >-</option>
-                  {planets.map(planet =>
-                    <option key={planet.name} value={planet.name} >{planet.name}</option>
-                  )}
-                </select>
-                {
-                vehicles.map(vehicle => <>
-                  <input type="radio" name={'vehicle_destination_' + idx} value={selectedValues[idx].vehicle} onClick={(e) => send('UPDATE_SELECTED_VEHICLE', {
-                    value: vehicle.name,
+            {
+              const selectedPlanets = selectedValues.map(i => i.planet).filter(i => i !== '');
+
+              return (
+                <div style={{display: "block"}} key={idx}>
+                  Destination {idx + 1}
+                  <select value={selectedValues[idx].planet} onChange={(e) => send('UPDATE_SELECTED_PLANET', {
+                    value: e.target.value,
                     index: idx
-                  })}/>
-                  <label for={'vehicle_destination_' + idx}>{vehicle.name} ({vehicle.totalNo})</label>
-                  </>)
-                }
-              </div>)
+                  })}>
+                    <option value="">-</option>
+                    {planets.filter(planet => !selectedPlanets.filter(i => i!== selectedValues[idx].planet).includes(planet.name)).map(planet =>
+                      <option key={planet.name} value={planet.name}>{planet.name}</option>
+                    )}
+                  </select>
+                  {
+                    selectedValues[idx].planet !== '' &&
+                    vehicles.map(vehicle => {
+                      const availableVehiclesNumber = vehicle.total_no - getUsedVehicleByName(vehicle.name, selectedValues);
+                      return (<>
+                        <input type="radio" name={'vehicle_destination_' + idx} value={selectedValues[idx].vehicle}
+                               onClick={(e) => send('UPDATE_SELECTED_VEHICLE', {
+                                 value: vehicle.name,
+                                 index: idx
+                               })} disabled={availableVehiclesNumber === 0} checked={selectedValues[idx].vehicle === vehicle.name}/>
+                        <label for={'vehicle_destination_' + idx}>{vehicle.name} ({vehicle.total_no})</label>
+                      </>)
+                    })
+                  }
+                </div>
+              )
+            })
           }
-          <button onclick={() => send('SUBMIT')}>Submit</button>
+          <button onClick={() => send('SUBMIT')}>Submit</button>
         </div>
       )
       break
@@ -71,7 +87,7 @@ function App() {
       content = <span>error</span>
       break
     case state.matches('finish'):
-      content = <span>finish</span>
+      content = <div>Finish. Result: {JSON.stringify(result)} <button onClick={() => send('RESET')}>reset</button></div>
       break
     default:
       break

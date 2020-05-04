@@ -1,16 +1,18 @@
 import { createMachine, assign } from 'xstate';
 import {fetchPlanetsAndVehicles, fetchToken, findfalcone} from "./api";
-import { isFormValid } from "./selector";
 import {IFindingFalconeContext, FindingFalconeEvents, IVehicles, IPlanet} from "./types";
 
+const initialContext: IFindingFalconeContext = {
+  planets: [],
+  vehicles: [],
+  result: null,
+  selectedValues: [{ vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}]
+}
 
 const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeEvents>({
   id: 'findFalcone',
   context: {
-    planets: [],
-    vehicles: [],
-    result: null,
-    selectedValues: [{ vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}]
+    ...initialContext,
   },
     initial: 'loading',
     states: {
@@ -18,8 +20,7 @@ const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeE
         on: {
           SUBMIT: [
             {
-              target: 'loading.findingFalcone',
-              cond: isFormValid
+              target: '#findFalcone.loading.findingFalcone',
             },
             {
               target: 'error'
@@ -68,7 +69,12 @@ const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeE
          }
       },
       finish: {
-
+        on: {
+          RESET: {
+            target: '#findFalcone.idle.normal',
+            actions: ['resetContext']
+          }
+        }
       },
       error: {
 
@@ -108,6 +114,10 @@ const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeE
         result: event.data
       }
     }),
+    resetContext: assign<IFindingFalconeContext, FindingFalconeEvents>(() => ({
+      result: null,
+      selectedValues: [{ vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}]
+    }))
   }
 });
 
