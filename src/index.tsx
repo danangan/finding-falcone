@@ -22,7 +22,11 @@ function App() {
 
   switch (true) {
     case state.matches('idle'):
-      content = <span>idle</span>
+      content = (
+        <div>
+          <button onClick={() => send('SUBMIT')}>Submit</button>
+        </div>
+      )
       break
     case state.matches('loading'):
       content = <span>loading</span>

@@ -54,7 +54,16 @@ const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeE
               }
             },
             findingFalcone: {
-
+              invoke: {
+                src: findfalcone,
+                onDone: {
+                  target: '#findFalcone.finish',
+                  actions: ['updateResult']
+                },
+                onError: {
+                  target: '#findFalcone.error'
+                }
+              }
             }
          }
       },
@@ -93,7 +102,12 @@ const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeE
       return {
         selectedValues
       }
-    })
+    }),
+    updateResult: assign<IFindingFalconeContext, FindingFalconeEvents>((context, event) => {
+      return {
+        result: event.data
+      }
+    }),
   }
 });
 
