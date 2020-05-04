@@ -20,11 +20,47 @@ function App() {
 
   let content
 
+
+
+  console.log(state);
+
+  const { context: {
+    planets,
+    vehicles,
+    selectedValues
+  }} = state;
+
   switch (true) {
     case state.matches('idle'):
+      // @ts-ignore
+      // @ts-ignore
       content = (
         <div>
-          <button onClick={() => send('SUBMIT')}>Submit</button>
+          {
+            [0,1,2,3].map((_, idx) =>
+              <div style={{ display: "block" }} key={idx}>
+                Destination {idx + 1}
+                <select value={selectedValues[idx].planet} onChange={(e) => send('UPDATE_SELECTED_PLANET', {
+                  value: e.target.value,
+                  index: idx
+                })}>
+                  <option value="" >-</option>
+                  {planets.map(planet =>
+                    <option key={planet.name} value={planet.name} >{planet.name}</option>
+                  )}
+                </select>
+                {
+                vehicles.map(vehicle => <>
+                  <input type="radio" name={'vehicle_destination_' + idx} value={selectedValues[idx].vehicle} onClick={(e) => send('UPDATE_SELECTED_VEHICLE', {
+                    value: vehicle.name,
+                    index: idx
+                  })}/>
+                  <label for={'vehicle_destination_' + idx}>{vehicle.name} ({vehicle.totalNo})</label>
+                  </>)
+                }
+              </div>)
+          }
+          <button onclick={() => send('SUBMIT')}>Submit</button>
         </div>
       )
       break
@@ -33,6 +69,9 @@ function App() {
       break
     case state.matches('error'):
       content = <span>error</span>
+      break
+    case state.matches('finish'):
+      content = <span>finish</span>
       break
     default:
       break

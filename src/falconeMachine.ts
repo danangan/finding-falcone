@@ -92,7 +92,7 @@ const findFalconeMachine = createMachine<IFindingFalconeContext, FindingFalconeE
       }
     }),
     updateSelectedPlanet: assign<IFindingFalconeContext, FindingFalconeEvents>((context, event) => {
-      if (event.type !== 'UPDATE_SELECTED_VEHICLE') {
+      if (event.type !== 'UPDATE_SELECTED_PLANET') {
         return {}
       }
 
