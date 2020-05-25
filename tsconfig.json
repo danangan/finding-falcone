@@ -1,11 +1,21 @@
 {
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "jsx": "react",
-    "lib": [
-      "dom",
-      "scripthost",
-      "es2015.promise",
-      "esnext"
-    ]
-  }
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": false,
+    "target": "ES6",
+    "sourceMap": true,
+    "inlineSources": true,
+    "sourceRoot": "/",
+    "resolveJsonModule": true,
+    "skipLibCheck": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

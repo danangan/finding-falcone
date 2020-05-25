@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import styles from './styles.module.scss'
-import falconeMachine from './falconeMachine'
+import findFalconeMachine from './falconeMachine'
 import { useMachine } from '@xstate/react'
 import {ISelectedValues} from './types'
 
@@ -24,11 +23,10 @@ function Layout(props) {
 }
 
 function App() {
-  const [state, send] = useMachine(falconeMachine, {
-    devTools: true,
-  })
+  // @ts-ignore
+  const [state, send] = useMachine(findFalconeMachine, {devTools: true,});
 
-  let content
+  let content;
 
   const { context: {
     planets,
@@ -64,7 +62,7 @@ function App() {
                       const availableVehiclesNumber = vehicle.total_no - getUsedVehicleByName(vehicle.name, selectedValues);
                       return (<>
                         <input type="radio" name={'vehicle_destination_' + idx} value={selectedValues[idx].vehicle}
-                               onClick={(e) => send('UPDATE_SELECTED_VEHICLE', {
+                               onClick={() => send('UPDATE_SELECTED_VEHICLE', {
                                  value: vehicle.name,
                                  index: idx
                                })} disabled={availableVehiclesNumber === 0} checked={selectedValues[idx].vehicle === vehicle.name}/>

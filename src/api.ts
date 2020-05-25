@@ -1,6 +1,6 @@
 import {IFindingFalconeContext} from './types';
 
-export function fetchToken() {
+function fetchToken() {
     return fetch('https://findfalcone.herokuapp.com/token', {
         method: 'POST',
         headers: {
