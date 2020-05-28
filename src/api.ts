@@ -1,5 +1,10 @@
 import {IFindingFalconeContext} from './types';
 
+export interface IApi {
+  fetchPlanetsAndVehicles: () => Promise<any>,
+  findFalcone: (IFindingFalconeContext) => Promise<any>
+}
+
 function fetchToken() {
     return fetch('https://findfalcone.herokuapp.com/token', {
         method: 'POST',
@@ -9,7 +14,7 @@ function fetchToken() {
     }).then(res => res.json())
 }
 
-export function fetchPlanetsAndVehicles() {
+function fetchPlanetsAndVehicles() {
   return Promise.all([fetchPlanets(), fetchVehicles()]).then((res) => {
     return {
       planets: res[0],
@@ -26,7 +31,7 @@ function fetchVehicles() {
   return fetch('https://findfalcone.herokuapp.com/vehicles').then(res => res.json())
 }
 
-export function findfalcone(context: IFindingFalconeContext) {
+function findFalcone(context: IFindingFalconeContext) {
   return fetchToken().then((res) => {
     return fetch('https://findfalcone.herokuapp.com/find', {
       method: 'POST',
@@ -42,5 +47,12 @@ export function findfalcone(context: IFindingFalconeContext) {
     })
   }).then(res => res.json())
 }
+
+const api: IApi = {
+  findFalcone,
+  fetchPlanetsAndVehicles
+};
+
+export default api;
 
 

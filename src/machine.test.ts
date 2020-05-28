@@ -1,92 +1,67 @@
 import { createFindFalconeMachine }  from "./falconeMachine";
-import { interpret } from '@xstate/fsm';
+import {IApi} from "./api";
+import {Event} from "xstate";
 
 describe("findFalconeMachine", () => {
-  it('should fetch the planets and vehicles during machine initial ',  function (done) {
+  it('initial state should be loading state',  function () {
     const mockApi = {
-      fetchPlanetsAndVehicles: jest.fn(),
+      fetchPlanetsAndVehicles: jest.fn(() => Promise.resolve({
+        planets: ['a', 'b'],
+        vehicles: ['c', 'd'],
+      })),
       findFalcone: jest.fn(),
     };
 
     const mockMachine = createFindFalconeMachine(mockApi);
 
-    const sut = mockMachine.transition('loading', { type: 'DONE', data: {
-      planets: ['a', 'b'],
-        vehicles: ['a', 'b']
-      }});
+    const {initialState} = mockMachine;
 
-    expect(sut.context.planets).toBe('wow');
-    expect(sut.context.vehicles).toBe('wow');
+    expect(initialState.matches('loading')).toBe(true);
   });
 
   describe('idle state', function() {
     it('UPDATE_SELECTED_VEHICLE should update selected vehicle',  function () {
       const mockApi = {
-        fetchPlanetsAndVehicles: jest.fn(() => {
-          return {
-            planets: [],
-            vehicles: [],
-          }
-        }),
+        fetchPlanetsAndVehicles: jest.fn(),
         findFalcone: jest.fn(),
       };
 
-      const mockMachine = createFindFalconeMachine(mockApi);
-
-      // const service = interpret(mockMachine);
-      //
-      // service.start();
+      const mockMachine = createFindFalconeMachine(mockApi as IApi);
 
       const sut = mockMachine.transition('idle', { type: 'UPDATE_SELECTED_VEHICLE', index: 0, value: 'wow'});
 
       expect(sut.context.selectedValues[0].vehicle).toBe('wow');
     });
-  })
+  });
 
   describe('finish state', function() {
-    it('RESET should move to idle state',  function () {
+    it('RESET event should move to idle state',  function () {
       const mockApi = {
-        fetchPlanetsAndVehicles: jest.fn(() => {
-          return {
-            planets: [],
-            vehicles: [],
-          }
-        }),
+        fetchPlanetsAndVehicles: jest.fn(),
         findFalcone: jest.fn(),
       };
 
-      const mockMachine = createFindFalconeMachine(mockApi);
+      const mockMachine = createFindFalconeMachine(mockApi as IApi);
 
-      // const service = interpret(mockMachine);
-      //
-      // service.start();
-      const sut = mockMachine.transition('finish', { type: 'RESET'});
+      const sut = mockMachine.transition('finish', { type: 'RESET'} as Event<any>);
 
       expect(sut.matches('idle')).toBe(true);
     });
 
-    it('RESET should reset context',  function () {
+    it('RESET event should reset context',  function () {
       const mockApi = {
-        fetchPlanetsAndVehicles: jest.fn(() => {
-          return {
-            planets: [],
-            vehicles: [],
-          }
-        }),
+        fetchPlanetsAndVehicles: jest.fn(),
         findFalcone: jest.fn(),
       };
 
-      const mockMachine = createFindFalconeMachine(mockApi, {
-        planets: [1,2,3,4],
-        vehicles: [1,2,3,4],
+      const mockMachine = createFindFalconeMachine(mockApi as IApi, {
+        planets: [{name: 'any_planet', distance: 1},{name: 'any_planet', distance: 1},{name: 'any_planet', distance: 1},{name: 'any_planet', distance: 1}],
+        vehicles: [{name: 'any_vehicle', total_no: 1, speed: 1, max_distance: 1},{name: 'any_vehicle', total_no: 1, speed: 1, max_distance: 1},{name: 'any_vehicle', total_no: 1, speed: 1, max_distance: 1},{name: 'any_vehicle', total_no: 1, speed: 1, max_distance: 1}],
         result: null,
         selectedValues: [{ vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}]
       });
 
-      // const service = interpret(mockMachine);
-      //
-      // service.start();
-      const sut = mockMachine.transition('finish', { type: 'RESET'});
+      const sut = mockMachine.transition('finish', { type: 'RESET'} as Event<any>);
 
       expect(sut.context).toEqual({
         planets: [],

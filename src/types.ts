@@ -32,8 +32,29 @@ export interface IFindingFalconeContext {
   selectedValues: [ISelectedValues, ISelectedValues, ISelectedValues, ISelectedValues]
 }
 
+export interface SubmitEvent {
+  type: 'SUBMIT'
+}
+
+export interface UpdateSelectedVehicleEvent {
+  type: 'UPDATE_SELECTED_VEHICLE';
+  index: 0 | 1 | 2 | 3;
+  value: string;
+}
+
+export interface UpdateSelectedPlanetEvent {
+  type: 'UPDATE_SELECTED_PLANET';
+  index: 0 | 1 | 2 | 3;
+  value: string;
+}
+
+export type DoneFetchPlanetsAndVehicleEvent = DoneInvokeEvent<{planets: Array<IPlanet>, vehicles: Array<IVehicles>}>
+
+export type DoneFindFalconeEvent = DoneInvokeEvent<{status: STATUS, planet?: String}>
+
 export type FindingFalconeEvents =
-  | { type: 'SUBMIT' }
-  | { type: 'UPDATE_SELECTED_VEHICLE'; index: 0 | 1 | 2 | 3; value: string; }
-  | { type: 'UPDATE_SELECTED_PLANET'; index: 0 | 1 | 2 | 3; value: string; }
-  | DoneInvokeEvent<{planets: Array<IPlanet>, vehicles: Array<IVehicles>}>;
+  | SubmitEvent
+  | UpdateSelectedVehicleEvent
+  | UpdateSelectedPlanetEvent
+  | DoneFetchPlanetsAndVehicleEvent
+  | DoneFindFalconeEvent

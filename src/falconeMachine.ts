@@ -1,6 +1,11 @@
-import { createMachine, assign } from 'xstate';
-import * as api from "./api";
-import {IFindingFalconeContext, FindingFalconeEvents} from "./types";
+import {createMachine, assign} from 'xstate';
+import defaultApi, { IApi } from "./api";
+import {
+  IFindingFalconeContext,
+  FindingFalconeEvents,
+  DoneFetchPlanetsAndVehicleEvent,
+  UpdateSelectedVehicleEvent, UpdateSelectedPlanetEvent, DoneFindFalconeEvent
+} from "./types";
 
 const initialContextDefault: IFindingFalconeContext = {
   planets: [],
@@ -9,12 +14,20 @@ const initialContextDefault: IFindingFalconeContext = {
   selectedValues: [{ vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}, {vehicle: '', planet: ''}]
 };
 
-export const createFindFalconeMachine = (api, initialContext = initialContextDefault) => {
+function createContextCopy (context: IFindingFalconeContext): IFindingFalconeContext {
+  const {selectedValues, planets, vehicles, result} = context;
+  return {
+    planets: [...planets],
+    vehicles: [...vehicles],
+    result: result ? {...result} : result,
+    selectedValues: [{ ...selectedValues[0] }, { ...selectedValues[1] }, { ...selectedValues[2] }, { ...selectedValues[3] }],
+  }
+};
+
+export const createFindFalconeMachine = (api: IApi = defaultApi, initialContext: IFindingFalconeContext = initialContextDefault) => {
   return createMachine<IFindingFalconeContext, FindingFalconeEvents>({
     id: 'findFalcone',
-    context: {
-      ...initialContext,
-    },
+    context: createContextCopy(initialContext),
     initial: 'loading',
     states: {
       idle: {
@@ -57,7 +70,7 @@ export const createFindFalconeMachine = (api, initialContext = initialContextDef
           },
           findingFalcone: {
             invoke: {
-              src: api.findfalcone,
+              src: api.findFalcone,
               onDone: {
                 target: '#findFalcone.finish',
                 actions: ['updateResult']
@@ -83,47 +96,36 @@ export const createFindFalconeMachine = (api, initialContext = initialContextDef
     },
   }, {
     actions: {
-      updateVehiclesAndPlanets: assign<IFindingFalconeContext, FindingFalconeEvents>((_ctx, event) => {
-        // @ts-ignore
-        return event?.data
+      updateVehiclesAndPlanets: assign<IFindingFalconeContext, DoneFetchPlanetsAndVehicleEvent>((_ctx, event) => {
+        return event.data
       }),
-      updateSelectedVehicle: assign<IFindingFalconeContext, FindingFalconeEvents>((context, event) => {
-        if (event.type !== 'UPDATE_SELECTED_VEHICLE') {
-          return {}
-        }
-
+      updateSelectedVehicle: assign<IFindingFalconeContext, UpdateSelectedVehicleEvent>((context, event) => {
         const { selectedValues } = context;
-        // @ts-ignore
         selectedValues[event?.index].vehicle = event?.value;
 
         return {
           selectedValues
         }
       }),
-      updateSelectedPlanet: assign<IFindingFalconeContext, FindingFalconeEvents>((context, event) => {
-        if (event.type !== 'UPDATE_SELECTED_PLANET') {
-          return {}
-        }
-
+      updateSelectedPlanet: assign<IFindingFalconeContext, UpdateSelectedPlanetEvent>((context, event) => {
         const { selectedValues } = context;
-        // @ts-ignore
+
         selectedValues[event?.index].planet = event?.value;
 
         return {
           selectedValues
         }
       }),
-      updateResult: assign<IFindingFalconeContext, FindingFalconeEvents>((_context, event) => {
+      updateResult: assign<IFindingFalconeContext, DoneFindFalconeEvent>((_context, event) => {
         return {
-          // @ts-ignore
-          result: event?.data
+          result: event.data
         }
       }),
-      resetContext: assign<IFindingFalconeContext, FindingFalconeEvents>(() => initialContextDefault)
+      resetContext: assign<IFindingFalconeContext, FindingFalconeEvents>(() => createContextCopy(initialContextDefault))
     }
   });
 };
 
-export const findFalconeMachine = createFindFalconeMachine(api);
+export const findFalconeMachine = createFindFalconeMachine();
 
 export default findFalconeMachine;
