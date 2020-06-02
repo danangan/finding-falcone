@@ -2,15 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import findFalconeMachine from './falconeMachine'
 import { useMachine } from '@xstate/react'
-import {ISelectedValues} from './types'
+import { ISelectedValues, IFindingFalconeContext } from './types'
 
 function getUsedVehicleByName(vehicleName: string, selectedValues: Array<ISelectedValues>) {
   return selectedValues.reduce((prevValue, selectedValue) => {
     if (selectedValue.vehicle === vehicleName) {
-      return prevValue + 1;
+      return prevValue + 1
     }
-    return prevValue;
-  },0)
+    return prevValue
+  }, 0)
 }
 
 function Layout(props) {
@@ -24,56 +24,71 @@ function Layout(props) {
 
 function App() {
   // @ts-ignore
-  const [state, send] = useMachine(findFalconeMachine, {devTools: true,});
+  const [state, send] = useMachine<IFindingFalconeContext, FindingFalconeEvents>(findFalconeMachine, { devTools: true })
 
-  let content;
+  let content
 
-  const { context: {
-    planets,
-    vehicles,
-    selectedValues,
-    result
-  }} = state;
+  const {
+    context: { planets, vehicles, selectedValues, result },
+  } = state
 
   switch (true) {
     case state.matches('idle'):
       content = (
         <div>
-          {
-            [0,1,2,3].map((_, idx) =>
-            {
-              const selectedPlanets = selectedValues.map(i => i.planet).filter(i => i !== '');
+          {[0, 1, 2, 3].map((_, idx) => {
+            const selectedPlanets = selectedValues.map((i) => i.planet).filter((i) => i !== '')
 
-              return (
-                <div style={{display: "block"}} key={idx}>
-                  Destination {idx + 1}
-                  <select value={selectedValues[idx].planet} onChange={(e) => send('UPDATE_SELECTED_PLANET', {
-                    value: e.target.value,
-                    index: idx
-                  })}>
-                    <option value="">-</option>
-                    {planets.filter(planet => !selectedPlanets.filter(i => i!== selectedValues[idx].planet).includes(planet.name)).map(planet =>
-                      <option key={planet.name} value={planet.name}>{planet.name}</option>
-                    )}
-                  </select>
-                  {
-                    selectedValues[idx].planet !== '' &&
-                    vehicles.map(vehicle => {
-                      const availableVehiclesNumber = vehicle.total_no - getUsedVehicleByName(vehicle.name, selectedValues);
-                      return (<>
-                        <input type="radio" name={'vehicle_destination_' + idx} value={selectedValues[idx].vehicle}
-                               onClick={() => send('UPDATE_SELECTED_VEHICLE', {
-                                 value: vehicle.name,
-                                 index: idx
-                               })} disabled={availableVehiclesNumber === 0} checked={selectedValues[idx].vehicle === vehicle.name}/>
-                        <label for={'vehicle_destination_' + idx}>{vehicle.name} ({vehicle.total_no})</label>
-                      </>)
+            return (
+              <div style={{ display: 'block' }} key={idx}>
+                Destination {idx + 1}
+                <select
+                  value={selectedValues[idx].planet}
+                  onChange={(e) =>
+                    send('wow', {
+                      value: e.target.value,
                     })
                   }
-                </div>
-              )
-            })
-          }
+                >
+                  <option value="">-</option>
+                  {planets
+                    .filter(
+                      (planet) => !selectedPlanets.filter((i) => i !== selectedValues[idx].planet).includes(planet.name)
+                    )
+                    .map((planet) => (
+                      <option key={planet.name} value={planet.name}>
+                        {planet.name}
+                      </option>
+                    ))}
+                </select>
+                {selectedValues[idx].planet !== '' &&
+                  vehicles.map((vehicle) => {
+                    const availableVehiclesNumber =
+                      vehicle.total_no - getUsedVehicleByName(vehicle.name, selectedValues)
+                    return (
+                      <>
+                        <input
+                          type="radio"
+                          name={'vehicle_destination_' + idx}
+                          value={selectedValues[idx].vehicle}
+                          onClick={() =>
+                            send('UPDATE_SELECTED_VEHICLE', {
+                              value: vehicle.name,
+                              index: idx,
+                            })
+                          }
+                          disabled={availableVehiclesNumber === 0}
+                          checked={selectedValues[idx].vehicle === vehicle.name}
+                        />
+                        <label for={'vehicle_destination_' + idx}>
+                          {vehicle.name} ({vehicle.total_no})
+                        </label>
+                      </>
+                    )
+                  })}
+              </div>
+            )
+          })}
           <button onClick={() => send('SUBMIT')}>Submit</button>
         </div>
       )
@@ -85,7 +100,11 @@ function App() {
       content = <span>error</span>
       break
     case state.matches('finish'):
-      content = <div>Finish. Result: {JSON.stringify(result)} <button onClick={() => send('RESET')}>reset</button></div>
+      content = (
+        <div>
+          Finish. Result: {JSON.stringify(result)} <button onClick={() => send('RESET')}>reset</button>
+        </div>
+      )
       break
     default:
       break
